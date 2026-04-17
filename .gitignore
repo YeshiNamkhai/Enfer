@@ -3,3 +3,6 @@ builds/
 .DS_Store
 */.DS_Store
 .vscode/
+Enfer-win32-x64/
+dist/
+out/

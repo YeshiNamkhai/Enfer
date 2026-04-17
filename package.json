@@ -1,37 +1,17 @@
 {
-  "name": "Orca",
-  "version": "0.1.0",
-  "engines": {
-    "node": ">= 10"
-  },
+  "name": "Enfer",
+  "version": "1.0.0",
+  "description": "Enfer MIDI Synth",
   "main": "main.js",
   "scripts": {
     "start": "electron . --disable-gpu",
-    "time": "node time.js",
-    "docs": "node ../docs.js",
-    "fix": "standard --fix",
-    "update": "npm update --save"
+    "build": "electron-packager . Enfer --platform=win32 --arch=x64 --overwrite --electron-version=8.5.3"
   },
   "devDependencies": {
-    "electron": "^8.5.3",
+    "electron": "8.5.3",
     "electron-packager": "^15.1.0"
   },
   "dependencies": {
     "node-osc": "^4.1.9"
-  },
-  "standard": {
-    "globals": [
-      "terminal",
-      "localStorage",
-      "DOMParser",
-      "onMessage",
-      "postMessage",
-      "FileReader",
-      "performance",
-      "Worker"
-    ],
-    "ignore": [
-      "/node_modules/*"
-    ]
   }
 }
