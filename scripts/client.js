@@ -44,6 +44,17 @@ function Client () {
     this.acels.set('Play', 'Next', ']', () => { this.modChannel(1) })
     this.acels.set('Play', 'Prev', '[', () => { this.modChannel(-1) })
 
+    // Scorrimento MIDI IN con virgola (,)
+    this.acels.set('Midi', 'Next Input1', ',', () => { this.io.next1() })
+    this.acels.set('Midi', 'Next Input1 Ctrl', 'CmdOrCtrl+,', () => { this.io.next1() })
+
+    // Scorrimento MIDI IN con punto (.)
+    this.acels.set('Midi', 'Next Input2', '.', () => { this.io.next2() })
+    this.acels.set('Midi', 'Next Input2 Ctrl', 'CmdOrCtrl+.', () => { this.io.next2() })
+
+    // MIDI Learn (Shift + -)
+    this.acels.set('Midi', 'Midi Learn', 'Enter', () => { this.io.startLearn() })
+
     this.acels.install(window)
     this.mixer.install(this.el)
     this.rack.install(this.el)
