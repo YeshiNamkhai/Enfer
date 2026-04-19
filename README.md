@@ -2,8 +2,15 @@
 
 A small web-based synth designed to be operated by [Orca](https://github.com/hundredrabbits/orca) and [LPD8](https://wiki.xxiivv.com/studio). More details shortly.
 
+![screen](enfer_screenshot.png?raw=true)
+
 ## MIDI
-Now is MIDI agnostic, you may select any MIDI input pressing (,), typically for your keyboard, and (.) for your ORCA.
+Now is MIDI agnostic, you may select any MIDI input pressing (,), typically for your keyboard, and (.) for your sequencer.
 
 ## LEARN
 Move mouse to the slider, press ENTER and move the knob on your MIDI device.
+
+### MENU
+MIDI settings and learn are also available as menu items.
+
+

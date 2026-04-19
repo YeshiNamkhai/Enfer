@@ -1,7 +1,7 @@
 {
   "name": "Enfer",
-  "version": "1.0.0",
-  "description": "Enfer MIDI Synth",
+  "version": "1.0.1",
+  "description": "Enfer by 100R, agnostic MIDI",
   "main": "main.js",
   "scripts": {
     "start": "electron . --disable-gpu",
