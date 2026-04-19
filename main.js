@@ -26,6 +26,36 @@ app.on('ready', () => {
 
   app.win.loadURL(`file://${__dirname}/index.html`)
   // app.inspect()
+  
+  app.injectMenu([
+    {
+      label: 'Enfer',
+      submenu: [
+        { label: 'About', role: 'about' },
+        { type: 'separator' },
+        { label: 'Hide', accelerator: 'CmdOrCtrl+H', role: 'hide' },
+        { type: 'separator' },
+        { label: 'Quit', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit() } }
+      ]
+    },
+    {
+      label: 'MIDI',
+      submenu: [
+        { label: 'Next Input 1', accelerator: ',', click: () => { app.win.webContents.executeJavaScript('client.io.next1()') } },
+        { label: 'Next Input 2', accelerator: '.', click: () => { app.win.webContents.executeJavaScript('client.io.next2()') } },
+        { type: 'separator' },
+        { label: 'MIDI Learn', accelerator: 'Enter', click: () => { app.win.webContents.executeJavaScript('client.io.startLearn()') } }
+      ]
+    },
+    {
+      label: 'View',
+      submenu: [
+        { label: 'Toggle Fullscreen', accelerator: 'F11', click: () => { app.toggleFullscreen() } },
+        { label: 'Toggle DevTools', accelerator: 'Alt+Command+I', click: () => { app.inspect() } }
+      ]
+    }
+  ])
+
 
   app.win.on('closed', () => {
     app.quit()
