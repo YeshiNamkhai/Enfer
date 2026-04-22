@@ -15,4 +15,4 @@ To control knobs grab the slider and press ENTER to activate MIDI learn, then mo
 MIDI settings and learn are also available as menu items.
 
 ## TIMBRE
-The original 12 drum/analog sets feature 4 new sets, 808 and orchestral.
+To the original 13 drum/analog sets, added 3 new sets: electronic, acoustic, and orchestral.
