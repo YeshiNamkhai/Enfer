@@ -12,6 +12,7 @@ function Knob (name, fn, min, max, initial = 0) {
   this.slider.setAttribute('min', '0')
   this.slider.setAttribute('max', '100')
   this.slider.setAttribute('value', '25')
+  this.slider.setAttribute('title', 'Not mapped')
  
   const radius = 40
   const padding = 20

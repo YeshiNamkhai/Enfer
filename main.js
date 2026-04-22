@@ -31,9 +31,8 @@ app.on('ready', () => {
     {
       label: 'Enfer',
       submenu: [
-        { label: 'About', role: 'about' },
-        { type: 'separator' },
-        { label: 'Hide', accelerator: 'CmdOrCtrl+H', role: 'hide' },
+        { label: 'Save Setup', accelerator: 'CmdOrCtrl+S', click: () => { app.win.webContents.executeJavaScript('client.save()').catch(() => {}) } },
+        { label: 'Load Setup', accelerator: 'CmdOrCtrl+L', click: () => { app.win.webContents.executeJavaScript('client.load()').catch(() => {}) } },
         { type: 'separator' },
         { label: 'Quit', accelerator: 'CmdOrCtrl+Q', click: () => { app.quit() } }
       ]
@@ -44,7 +43,12 @@ app.on('ready', () => {
         { label: 'Next Input 1', accelerator: ',', click: () => { app.win.webContents.executeJavaScript('client.io.next1()') } },
         { label: 'Next Input 2', accelerator: '.', click: () => { app.win.webContents.executeJavaScript('client.io.next2()') } },
         { type: 'separator' },
-        { label: 'MIDI Learn', accelerator: 'Enter', click: () => { app.win.webContents.executeJavaScript('client.io.startLearn()') } }
+        { label: 'Next Channel/Kit', accelerator: ']', click: () => { app.win.webContents.executeJavaScript('client.modChannel(1)') } },
+        { label: 'Prev Channel/Kit', accelerator: '[', click: () => { app.win.webContents.executeJavaScript('client.modChannel(-1)') } },
+        { type: 'separator' },
+        { label: 'MIDI Learn', accelerator: 'Enter', click: () => { app.win.webContents.executeJavaScript('client.io.startLearn()') } },
+        { type: 'separator' },
+        { label: 'Refresh MIDI', accelerator: 'CmdOrCtrl+R', click: () => { app.win.webContents.executeJavaScript('client.refreshMidi()').catch(e => {}) } },
       ]
     },
     {

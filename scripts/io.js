@@ -5,8 +5,8 @@ function IO (client) {
   this.index1 = -1      // Indice per la Sorgente 1
   this.index2 = -1      // Indice per la Sorgente 2
 
-  this.source1 = null   // Device collegato a >> 1
-  this.source2 = null   // Device collegato a >> 2
+  this.source1 = null   // Device collegato a <, 1
+  this.source2 = null   // Device collegato a <. 2
   this.lastClickedSlider = null // Memorizza l'ultimo slider toccato
   
   this.customMap = {} // Formato: { "cc_number": { ch: 0, knob: 0 } }
@@ -16,6 +16,10 @@ function IO (client) {
   this.el = document.createElement('div')
   this.el.style = 'position:absolute;bottom:20px;right:20px;display:flex;flex-direction:column;align-items:flex-end;gap:2px;pointer-events:none;font-family:monospace;font-size:12px;z-index:1000;'
   
+  this.monitorEl = document.createElement('div')
+  this.monitorEl.style = 'position:absolute;top:20px;left:50%;transform:translateX(-50%);display:flex;flex-direction:row;gap:4px;z-index:1000;'
+  this.channels = []
+
   this.labelLearn = document.createElement('span')
   this.labelLearn.style = 'color:#000;background:#72dec2;padding:2px 8px;border-radius:2px;display:none;font-weight:bold;margin-bottom:4px;'
   
@@ -26,6 +30,16 @@ function IO (client) {
   this.label2.style = 'color:white;background:rgba(0,0,0,0.6);padding:2px 8px;border-radius:2px;'
 
   this.install = (host) => {
+    for (let i = 0; i < 16; i++) {
+      const dot = document.createElement('div')
+      // LED leggermente più larghi per un look "strip" orizzontale
+      dot.style = 'width:12px;height:4px;background:#444;border-radius:1px;transition:background 0.1s;margin:2px'      
+      dot.setAttribute('title', `CH ${i + 1}`)
+      this.monitorEl.appendChild(dot)
+      this.channels.push(dot)
+    }
+
+    host.appendChild(this.monitorEl) // Appeso direttamente al centro in alto
     this.el.appendChild(this.labelLearn) // Aggiunta in cima alla colonna
     this.el.appendChild(this.label1)
     this.el.appendChild(this.label2)
@@ -38,6 +52,13 @@ function IO (client) {
     })
   }
 
+  this.flash = (ch) => {
+    if (this.channels[ch]) {
+      this.channels[ch].style.background = '#72dec2'
+      setTimeout(() => { this.channels[ch].style.background = '#444' }, 100)
+    }
+  }
+  
   this.startLearn = () => {
     // Usa l'elemento attivo O l'ultimo cliccato se il focus è perso (es. menu)
     const activeEl = (document.activeElement && document.activeElement.tagName === 'INPUT') 
@@ -78,65 +99,77 @@ function IO (client) {
   this.connect = () => {
     const d = this.midiSources
 
-    // 1. Reset totale per zittire i device non selezionati
+    // 1. Reset totale per zittire i device
     for (let i = 0; i < d.length; i++) {
       d[i].onmidimessage = null
     }
 
-    if (d.length === 0) {
-      this.label1.textContent = `<< 1 Offline`
-      this.label2.textContent = `<< 2 Offline`
-      return
-    }
-
-    // 2. Inizializzazione indici (garantisce diversità se possibile)
-    if (this.index1 < 0) { this.index1 = 0 }
-    if (this.index2 < 0) { this.index2 = (d.length > 1) ? 1 : 0 }
-    
-    // Forza la diversità: se sono uguali e c'è scelta, sposta lo Slot 2
-    if (this.index1 === this.index2 && d.length > 1) {
-      this.index2 = (this.index1 + 1) % d.length
-    }
-
-    this.source1 = d[this.index1]
-    this.source2 = d[this.index2]
-
-    // 3. Assegnazione Slot 1 (Mixer/Pads)
-    this.label1.textContent = `<, 1 ${this.source1.name}`
-    this.source1.onmidimessage = this.onControl
-
-    // 4. Assegnazione Slot 2 (Note/Rack)
-    if (this.source2 && this.index2 !== this.index1) {
-      this.label2.textContent = `<. 2 ${this.source2.name}`
-      this.source2.onmidimessage = this.onMessage
+    // --- Gestione Slot 1 ---
+    if (this.index1 === -1 || d.length === 0) {
+      this.label1.textContent = `<, No Input Device`
+      this.source1 = null
     } else {
-      // Caso limite: un solo device totale
-      this.label2.textContent = `<. 2 (Busy)` 
+      this.source1 = d[this.index1]
+      this.label1.textContent = `<, ${this.source1.name}`
+      this.source1.onmidimessage = this.onControl
+    }
+
+    // --- Gestione Slot 2 ---
+    if (this.index2 === -1 || d.length === 0) {
+      this.label2.textContent = `<. No Input Device`
+      this.source2 = null
+    } else if (this.index2 === this.index1) {
+      // Se puntano allo stesso device e non è "No Input", lo slot 2 resta in attesa
+      this.label2.textContent = `<. 2 (Busy)`
+      this.source2 = null
+    } else {
+      this.source2 = d[this.index2]
+      this.label2.textContent = `<. ${this.source2.name}`
+      this.source2.onmidimessage = this.onMessage
     }
   }
 
   this.next1 = () => {
-    if (this.midiSources.length < 2) { return }
-    let nextIndex = (this.index1 + 1) % this.midiSources.length
-    
-    // Salta il device già occupato dallo slot 2
-    if (nextIndex === this.index2) {
-      nextIndex = (nextIndex + 1) % this.midiSources.length
+    // Il ciclo ora include -1 (No Input)
+    // Range: -1 a midiSources.length - 1
+    let nextIndex = this.index1 + 1
+    if (nextIndex >= this.midiSources.length) {
+      nextIndex = -1 // Torna a No Input
     }
-    
+
+    // Salta il device occupato dallo slot 2, a meno che non sia -1
+    if (nextIndex !== -1 && nextIndex === this.index2) {
+      return this.next1_skip(nextIndex)
+    }
+
+    this.index1 = nextIndex
+    this.connect()
+  }
+
+  this.next1_skip = (current) => {
+    let nextIndex = current + 1
+    if (nextIndex >= this.midiSources.length) { nextIndex = -1 }
     this.index1 = nextIndex
     this.connect()
   }
 
   this.next2 = () => {
-    if (this.midiSources.length < 2) { return }
-    let nextIndex = (this.index2 + 1) % this.midiSources.length
-    
-    // Salta il device già occupato dallo slot 1
-    if (nextIndex === this.index1) {
-      nextIndex = (nextIndex + 1) % this.midiSources.length
+    let nextIndex = this.index2 + 1
+    if (nextIndex >= this.midiSources.length) {
+      nextIndex = -1
     }
-    
+
+    if (nextIndex !== -1 && nextIndex === this.index1) {
+      return this.next2_skip(nextIndex)
+    }
+
+    this.index2 = nextIndex
+    this.connect()
+  }
+
+  this.next2_skip = (current) => {
+    let nextIndex = current + 1
+    if (nextIndex >= this.midiSources.length) { nextIndex = -1 }
     this.index2 = nextIndex
     this.connect()
   }
@@ -166,10 +199,16 @@ function IO (client) {
     const cc = msg.data[1]
     const val = msg.data[2]
 
-    // 1. TASTIERA (Sempre funzionante)
-    if (status === 144 || status === 145) {
-      if (client.rack && client.rack.play) { client.rack.play(client.channel, cc % 16, val) }
-      return 
+    // Attiva il monitor per il canale corrispondente (0-15)
+    const ch = status & 0xF 
+    this.flash(ch)
+
+    // 1. GESTIONE NOTE (Omni manda al canale [])
+    if (status >= 144 && status <= 159) {
+      if (client.rack && client.rack.play) {
+        client.rack.play(client.channel, cc % 16, val)
+      }
+      return
     }
 
     // 2. GESTIONE MIDI CC (Knobs)
@@ -181,6 +220,12 @@ function IO (client) {
         this.isLearning = false
         this.labelLearn.style.display = 'none'
         console.log(`MAPPATO: CC ${cc} -> Knob ${this.learningTarget}`)
+        
+        const allSliders = Array.from(document.querySelectorAll('input[type="range"]'))
+        const targetSlider = allSliders[this.learningTarget]
+        if (targetSlider) {
+          targetSlider.title = `MIDI CC: ${cc}`
+        }
         return
       }
 
@@ -188,8 +233,6 @@ function IO (client) {
       if (this.customMap && this.customMap[cc] !== undefined) {
         const target = this.customMap[cc].knob
         
-        // Cerchiamo l'array corretto dei knob
-        // In Enfer spesso i knob sono in client.rack.knobs
         const knobs = client.rack.knobs
         
         if (knobs && knobs[target]) {
@@ -206,8 +249,6 @@ function IO (client) {
           
           console.log(`Eseguito: ${knobs[target].label.textContent} impostato a ${val}`)
         } else {
-          // Se non lo trova nel rack, lo cerchiamo nel mixer (fallback)
-          console.warn(`Mappato su ${target}, ma non trovo il knob in client.rack.knobs. Verifico mixer...`)
           if (client.mixer && client.mixer.tweak) {
             client.mixer.tweak(client.channel, target, val)
           }
@@ -217,6 +258,10 @@ function IO (client) {
   }
   
   this.onMessage = (msg) => {
+    // Attiva il monitor
+    const ch = msg.data[0] & 0xF
+    this.flash(ch)
+    
     if (msg.data[0] >= 144 && msg.data[0] < 160) {
       const ch = msg.data[0] - 144
       const pad = msg.data[1] - 24

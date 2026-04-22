@@ -24,10 +24,10 @@ function Client () {
     this.theme.default = { background: '#000000', f_high: '#ffffff', f_med: '#777777', f_low: '#444444', f_inv: '#000000', b_high: '#eeeeee', b_med: '#72dec2', b_low: '#444444', b_inv: '#ffb545' }
 
     host.appendChild(this.el)
-    this.acels.set('Play', 'Test Midi', 'X', () => { this.rack.play(this.channel, 0) })
-    this.acels.set('Play', 'Test Midi', 'C', () => { this.rack.play(this.channel, 1) })
-    this.acels.set('Play', 'Test Midi', 'V', () => { this.rack.play(this.channel, 2) })
-    this.acels.set('Play', 'Test Midi', 'Z', () => { this.rack.play(this.channel, 3) })
+    this.acels.set('Play', 'Test Midi', 'Z', () => { this.rack.play(this.channel, 0) })
+    this.acels.set('Play', 'Test Midi', 'X', () => { this.rack.play(this.channel, 1) })
+    this.acels.set('Play', 'Test Midi', 'C', () => { this.rack.play(this.channel, 2) })
+    this.acels.set('Play', 'Test Midi', 'V', () => { this.rack.play(this.channel, 3) })
     this.acels.set('Play', 'Test Midi', 'S', () => { this.rack.play(this.channel, 4) })
     this.acels.set('Play', 'Test Midi', 'D', () => { this.rack.play(this.channel, 5) })
     this.acels.set('Play', 'Test Midi', 'F', () => { this.rack.play(this.channel, 6) })
@@ -69,8 +69,62 @@ function Client () {
   }
 
   this.modChannel = (mod) => {
-    this.channel += mod
-    this.channel = this.channel % 16
+    const numKits = this.rack.kits.length
+    if (numKits === 0) return
+
+    this.channel = (this.channel + mod + numKits) % numKits
+    if (this.io && this.io.flash) {
+      this.io.flash(this.channel)
+    }
     console.log('Channel', this.channel)
+    
+  }
+
+  this.save = () => {
+    const state = {
+      channel: this.channel,
+      // Prendiamo tutti gli slider nell'ordine esatto in cui appaiono nel DOM
+      // Proprio come fa il tuo startLearn() con Array.from(querySelectorAll)
+      knobs: Array.from(document.querySelectorAll('input[type="range"]')).map(s => s.value),
+      midi: this.io.customMap
+    }
+
+    localStorage.setItem('enfer_state', JSON.stringify(state))
+    console.log("Setup Salvato (Indici DOM)")
+  }
+
+  this.load = () => {
+    const data = localStorage.getItem('enfer_state')
+    if (!data) return
+
+    const state = JSON.parse(data)
+    this.channel = state.channel || 0
+    this.io.customMap = state.midi || {}
+
+    const allSliders = Array.from(document.querySelectorAll('input[type="range"]'))
+    
+    if (state.knobs) {
+      state.knobs.forEach((val, index) => {
+        if (allSliders[index]) {
+          allSliders[index].value = val
+          // Dobbiamo simulare l'input per triggerare l'aggiornamento audio/grafico
+          // Cercando il componente Knob associato tramite il parent
+          const event = new Event('input', { bubbles: true })
+          if (allSliders[index]) {
+              allSliders[index].title = `MIDI CC: ${val}`
+          }
+          allSliders[index].dispatchEvent(event)
+        }
+      })
+    }
+    console.log("Setup Caricato")
+  }
+
+  this.refreshMidi = () => {
+    if (this.io && typeof this.io.refresh === 'function') {
+      this.io.refresh()
+      console.log('MIDI Devices refreshed.')
+    }
   }
 }
+

@@ -108,3 +108,24 @@ function Mixer (client) {
   this.update = () => {
   }
 }
+
+
+this.getState = () => {
+  const state = {}
+  for (const id in this.knobs) {
+    state[id] = this.knobs[id].value // Salva il valore attuale (0-127 o 0-1)
+  }
+  return state
+}
+
+this.loadState = (state) => {
+  if (!state) return
+  for (const id in state) {
+    if (this.knobs[id]) {
+      this.knobs[id].tweak(state[id])
+      if (typeof this.knobs[id].update === 'function') {
+        this.knobs[id].update()
+      }
+    }
+  }
+}

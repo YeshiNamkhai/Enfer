@@ -3,5 +3,4 @@ builds/
 .DS_Store
 */.DS_Store
 .vscode/
-Enfer-win32-x64/
-Enfer-win32-x64.zip
+dist/

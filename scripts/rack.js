@@ -26,7 +26,9 @@ function Rack (client) {
     this.add(new Kit('vermona')) // Funk Bass(Aelita)
     this.add(new Kit('commodore')) // Troika Pulse(Altair 231)
     this.add(new Kit('dmg')) // Comecon(Altair 231)
-
+    this.add(new Kit('drumboii')) // Classic 808 (drumboii)
+    this.add(new Kit('cheetah')) // Acoustic (cheetah)
+    this.add(new Kit('philarmonia')) // Orchestral (philarmonia)
     // Sampler Kits
 
     for (const kit of this.kits) {
@@ -62,6 +64,9 @@ function Rack (client) {
   }
 
   this.play = (ch, pad, vel = 127) => {
+    if (client.io && client.io.flash) {
+      client.io.flash(ch); // Ogni volta che il rack suona, il monitor lampeggia
+    }
     if (!this.isReady) { console.log('Rack', 'Still loading..'); return }
     if (!this.kits[ch]) { console.warn('Rack', 'Missing kit ', ch); return }
     this.kits[ch].play(pad, vel)

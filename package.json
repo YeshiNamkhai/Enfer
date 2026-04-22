@@ -5,7 +5,9 @@
   "main": "main.js",
   "scripts": {
     "start": "electron . --disable-gpu",
-    "build": "electron-packager . Enfer --platform=win32 --arch=x64 --overwrite --electron-version=8.5.3"
+    "build": "electron-packager . Enfer --platform=win32 --arch=x64 --out=dist --overwrite --electron-version=8.5.3",
+    "build-linux": "electron-packager . Enfer --platform=linux --arch=x64 --out=dist --overwrite --electron-version=8.5.3",
+    "build-mac": "electron-packager . Enfer --platform=darwin --arch=x64 --out=dist --overwrite --electron-version=8.5.3"
   },
   "devDependencies": {
     "electron": "8.5.3",
